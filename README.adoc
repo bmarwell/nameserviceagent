@@ -1,0 +1,95 @@
+= Name Resolver Replacement Agent for Java
+
+== Use case / what is this agent for?
+
+If you want to modify DNS resolving, you are out of luck with java.
+The SPI NameServiceDefinition was silently removed in Java 9+.
+Even with this definition, it was impossible to just extend the default `NameService` implementation.
+
+If you want to modify the behaviour of the existing `InetAddress::NameService` implementation, this agent will let you do this via ugly reflection and will break in later java versions as well.
+
+Oracle has not provided a solution to this problem.
+footnote:jdk8134577[See: https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8134577[JDK-8134577 : Eliminate or standardize a replacement for sun.net.spi.nameservice.NameServiceDescriptor].]
+footnote:jdk8201428[See: https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8201428[JDK-8201428 : Provide a standard API for name resolution].]
+footnote:jdk8192780[See: https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8192780[JDK-8192780 : Consider restoring DNS SPI].]
+
+== Requirements
+
+* This agent requires Java 8+.
+* About 20 kiB of disk and heap space.
+
+== Usage
+
+To use this agent, there are three steps to this:
+
+1. Compilation or Download
+2. Mount the agent with default configuration
+3. Configure or extend the agent
+
+=== Compilation or download
+
+You can compile this agent using `./mvnw package`.
+All you need is java11+ for compilation.
+You can use the file `./agent/target/nameserviceagent-agent-1.0.0-SNAPSHOT.jar`.
+
+Alternative:
+Download the nameserviceagent-agent.jar from the releases.
+
+=== Mounting the agent
+
+You can mount the agent using `java -javaagent:nameserviceagent-agent.jar <yourtool>`.
+
+=== Configuration
+
+Currently these options are available:
+
+|===
+|key |type |default value |description
+
+|`io.github.bmhm.nameserviceagent.implementation`
+|System Property (`-D`)
+|`io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService`
+|Switch the implementation of the replaced/injected naming service.
+
+|`io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService.timeoutMs`
+|System Property (`-D`)
+|`100` (ms)
+|Timeout for the DefaultSequentialRetryingNameService when a remote host is considered unavailable.
+|===
+
+==== Default configuration
+
+:fn-hostfile: footnote:[By default, java will use your system’s DNS resolver. If you specify `-Djdk.net.hosts.file=hosts.txt`, DNS resolution will be replaced by this host file mechanism.]
+The default configuration will use the default nameService (e.g. system dns or host file‎{fn-hostfile}).
+However, while the default implementation will just use the 1st IP returned, this implementation will in fact check all the IP addresses up to three times.
+
+A better strategy would be to test all of them sequentially three times.
+
+=== Always resolve loopback
+
+This DNS NameResolver implementation will always resolve to loopback (either `127.0.0.1` or `::1`).
+
+This configuration can be activated like this:
+
+[source,sh]
+....
+java
+    -javaagent:${localRepositoryPath}/io/github/bmhm/nameserviceagent/nameserviceagent-agent/@project.version@/nameserviceagent-agent-@project.version@.jar
+    -Dio.github.bmhm.nameserviceagent.implementation=io.github.bmhm.nameserviceagent.agent.nameservice.AlwaysLocalhostLoopbackNameService
+....
+
+==== Other configurations
+
+Feel free to create PRs for other Configs -- eg DNSoHTTPS, DNSfromDB, etc.
+
+== Extension
+
+If you want to write your own DNS Name Resolver, just extend `AbstractProxyNameService`
+and make sure you also have the public constructor with the NameService interface.
+
+Provide the full class name via the system property `io.github.bmhm.nameserviceagent.implementation`.
+
+== Production use
+
+This agent is not intended for production code.
+It will probably fail for more recent java releases which do not allow acces via reflection.

@@ -1,0 +1,2 @@
+# util classes
+java.util.Optional#get() @Optional.get is not allowed. Use other methods, like #ifPresent() or #orElse() or #orElseGet() or #orElseThrow.

@@ -1,0 +1,921 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright 2020-2020 the nameserviceangent team
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~          http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!-- Checkstyle-Configuration:
+  Loosely based on the google coding conventions from https://google.github.io/styleguide/javaguide.html. -->
+<module name="Checker">
+    <!-- TODO: remove (to inherit defaults) -->
+    <property name="charset" value="UTF-8"/>
+    <property name="fileExtensions" value="java, properties, xml"/>
+    <property name="tabWidth" value="2"/>
+
+
+    <!-- ***********************************************************
+    *** Configuration of Filters                                 ***
+    *** https://checkstyle.sourceforge.io/config_filters.html    ***
+    ************************************************************ -->
+
+    <module name="BeforeExecutionExclusionFileFilter">
+        <property name="fileNamePattern" value="module\-info\.java$"/>
+    </module>
+
+    <!-- required till https://bugs.openjdk.java.net/browse/JDK-8160601 -->
+    <module name="SuppressionSingleFilter">
+        <property name="checks" value="MissingDeprecatedCheck"/>
+        <property name="files" value="package-info\.java"/>
+    </module>
+
+    <!-- filter: allow suppressions via @SuppressWarning. -->
+    <module name="SuppressWarningsFilter"/>
+
+    <!-- ***********************************************************
+    *** Configuration of Annotations                             ***
+    *** https://checkstyle.sourceforge.io/config_annotation.html ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_annotations"/>
+        <property name="severity" value="error"/>
+
+        <!-- Methoden, Konstruktoren etc. brauchen eine Annotation pro Zeile. -->
+        <module name="AnnotationLocation">
+            <property name="id" value="annotations_loc_nonvar"/>
+            <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF"/>
+            <property name="allowSamelineMultipleAnnotations" value="false"/>
+            <property name="allowSamelineParameterizedAnnotation" value="false"/>
+        </module>
+        <!-- Variablen dürfen mehrere Annotations auf der gleichen Zeile haben. -->
+        <module name="AnnotationLocation">
+            <property name="id" value="annotations_loc_var"/>
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <property name="allowSamelineMultipleAnnotations" value="true"/>
+        </module>
+
+        <!-- conflicts with AnnotationLocation. -->
+        <!-- <module name="AnnotationOnSameLine"/> -->
+
+        <!-- annotation style is not enforced. -->
+        <!-- <module name="AnnotationUseStyle"/> -->
+
+        <!-- Verifies that both the @Deprecated annotation is present
+        and the @deprecated javadoc tag are present when either one is present. -->
+        <module name="MissingDeprecated"/>
+
+        <module name="MissingOverride"/>
+
+        <module name="PackageAnnotation"/>
+
+        <!-- empty and unused suprresions are not allowed. -->
+        <module name="SuppressWarnings">
+            <property name="format" value="^\s*+$|^unused$"/>
+        </module>
+
+    </module>
+
+    <!-- ***********************************************************
+    *** Configuration of Block Checks                            ***
+    *** https://checkstyle.sourceforge.io/config_blocks.html     ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_blocks"/>
+        <property name="severity" value="error"/>
+
+        <!-- checks no random blocks in code, no blocks in case statements. -->
+        <module name="AvoidNestedBlocks"/>
+
+        <!-- Checks for empty blocks. This check does not validate sequential blocks. -->
+        <module name="EmptyBlock">
+            <!-- leases the requirements for a block to be empty. Any text will make the block non-Empty, even a comment. -->
+            <property name="option" value="TEXT"/>
+            <property name="tokens"
+                      value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
+        </module>
+
+        <module name="EmptyCatchBlock">
+            <property name="exceptionVariableName" value="^(expected.*|ignored)$"/>
+        </module>
+
+        <module name="NeedBraces">
+            <!-- do not allow single-line statements without braces. -->
+            <property name="allowSingleLineStatement" value="false"/>
+            <!-- needed for:
+              * do
+              * else
+              * for
+              * if
+              * while
+
+              not needed for:
+              * case (in switch)
+              * default (in switch)
+              * lambdas
+            -->
+            <property name="tokens"
+                      value="LITERAL_DO, LITERAL_ELSE, LITERAL_FOR, LITERAL_IF, LITERAL_WHILE"/>
+        </module>
+
+        <module name="LeftCurly">
+            <property name="tokens"
+                      value="ANNOTATION_DEF, CLASS_DEF, CTOR_DEF, ENUM_CONSTANT_DEF, ENUM_DEF,
+            INTERFACE_DEF, LAMBDA, LITERAL_CASE, LITERAL_CATCH, LITERAL_DEFAULT,
+            LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF,
+            LITERAL_SWITCH, LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, METHOD_DEF,
+            OBJBLOCK, STATIC_INIT"/>
+        </module>
+        <module name="RightCurly">
+            <!-- it must be on its own line unless it is a single line statement. -->
+            <property name="id" value="RightCurlySame"/>
+            <property name="tokens"
+                      value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE,
+            LITERAL_DO"/>
+        </module>
+        <module name="RightCurly">
+            <property name="id" value="RightCurlyAlone"/>
+            <property name="option" value="alone"/>
+            <property name="tokens"
+                      value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
+              INSTANCE_INIT"/>
+        </module>
+    </module>
+
+    <!-- ***********************************************************
+    *** Configuration of Class Design Checks                     ***
+    *** https://checkstyle.sourceforge.io/config_design.html     ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_design"/>
+        <property name="severity" value="error"/>
+
+        <module name="SuppressionCommentFilter">
+            <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+            <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
+            <property name="checkFormat" value="$1"/>
+        </module>
+
+        <module name="DesignForExtension">
+            <property name="severity" value="info"/>
+        </module>
+
+        <module name="FinalClass"/>
+        <module name="HideUtilityClassConstructor"/>
+        <module name="InnerTypeLast"/>
+        <module name="InterfaceIsType"/>
+        <module name="MutableException"/>
+
+        <module name="OneTopLevelClass"/>
+
+        <module name="ThrowsCount">
+            <property name="max" value="5"/>
+        </module>
+
+        <module name="VisibilityModifier">
+            <property name="protectedAllowed" value="true"/>
+            <property name="packageAllowed" value="true"/>
+            <!-- this is needed for the resource injection unit tests.  It will removed
+                    when private member inject is supported.
+            -->
+            <property name="publicMemberPattern" value="resource[12].*"/>
+        </module>
+    </module>
+
+    <!-- ***********************************************************
+    *** Configuration of Coding Checks                           ***
+    *** https://checkstyle.sourceforge.io/config_coding.html     ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_coding"/>
+        <property name="severity" value="error"/>
+
+        <!-- Checks that the parts of a class or interface declaration appear
+        in the order suggested by the Code Conventions for the Java Programming Language. -->
+        <module name="DeclarationOrder"/>
+
+        <!-- Check that the default is after all the cases in a switch statement. -->
+        <module name="DefaultComesLast"/>
+
+        <!-- Checks if any class or object member is explicitly initialized to default
+        for its type value (null for object references,
+        zero for numeric types and char and false for boolean. -->
+        <module name="ExplicitInitialization"/>
+
+        <!-- Checks for fall-through in switch statements.
+        Finds locations where a case *contains* Java code
+        but lacks a break, return, throw or continue statement. -->
+        <module name="FallThrough"/>
+
+        <!-- Types heißt: Auf der linken Seite der Zuweisung. -->
+        <module name="IllegalType">
+            <property name="severity" value="error"/>
+            <property name="tokens"
+                      value="ANNOTATION_FIELD_DEF, INTERFACE_DEF, METHOD_CALL, METHOD_DEF, METHOD_REF, PARAMETER_DEF, VARIABLE_DEF"/>
+
+            <property name="illegalClassNames" value="java.util.GregorianCalendar"/>
+            <property name="illegalClassNames" value="java.util.Hashtable"/>
+            <property name="illegalClassNames" value="java.util.HashSet"/>
+            <property name="illegalClassNames" value="java.util.HashMap"/>
+            <property name="illegalClassNames" value="java.util.ArrayList"/>
+            <property name="illegalClassNames" value="java.util.LinkedList"/>
+            <property name="illegalClassNames" value="java.util.LinkedHashMap"/>
+            <property name="illegalClassNames" value="java.util.LinkedHashSet"/>
+            <property name="illegalClassNames" value="java.util.TreeSet"/>
+            <property name="illegalClassNames" value="java.util.TreeMap"/>
+        </module>
+
+        <!-- Checks that classes (except abstract ones) define a constructor and don't rely on the default one. -->
+        <module name="MissingCtor">
+            <!-- disabled -->
+            <property name="severity" value="ignore"/>
+        </module>
+
+        <!-- Checks for multiple occurrences of the same string literal within a single file. -->
+        <module name="MultipleStringLiterals">
+            <property name="allowedDuplicates" value="3"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!-- Checks that switch statement has a default clause. -->
+        <module name="MissingSwitchDefault"/>
+
+        <!-- Checks that each variable declaration is in its own statement and on its own line. -->
+        <module name="MultipleVariableDeclarations"/>
+
+        <module name="NoFinalizer"/>
+
+        <module name="OneStatementPerLine">
+            <property name="treatTryResourcesAsStatement" value="true"/>
+        </module>
+
+        <module name="OverloadMethodsDeclarationOrder"/>
+
+        <module name="PackageDeclaration"/>
+
+        <!-- Disallows assignment of parameters. -->
+        <module name="ParameterAssignment"/>
+
+        <!--
+          Checks that references to instance variables and methods of the present object
+          are explicitly of the form "this.varName" or "this.methodName(args)" and that those references
+          don't rely on the default behavior when "this." is absent. -->
+        <module name="RequireThis">
+            <property name="checkFields" value="true"/>
+            <property name="checkMethods" value="false"/>
+            <property name="validateOnlyOverlapping" value="false"/>
+        </module>
+
+        <!-- missing: return count for constructors. -->
+        <module name="ReturnCount">
+            <property name="id" value="return_count_ctor"/>
+            <property name="tokens" value="CTOR_DEF"/>
+
+            <property name="max" value="0"/>
+            <property name="maxForVoid" value="0"/>
+
+            <message key="return.count"
+                     value="ReturnCount: Return count is {0,number,integer}, but max allowed for constructors is {1,number,integer}."/>
+            <message key="return.countVoid"
+                     value="ReturnCount: Return count is {0,number,integer}, but max allowed for constructors is {1,number,integer}."/>
+        </module>
+
+        <!-- missing: return count for lambdas. -->
+        <module name="ReturnCount">
+            <property name="id" value="return_count_ctor"/>
+            <property name="tokens" value="LAMBDA"/>
+
+            <property name="max" value="1"/>
+            <property name="maxForVoid" value="1"/>
+
+            <message key="return.count"
+                     value="ReturnCount: Return count is {0,number,integer}, but max allowed for non-void Lambdas is {1,number,integer}."/>
+            <message key="return.countVoid"
+                     value="ReturnCount: Return count is {0,number,integer}, but max allowed for void Lambdas is {1,number,integer}."/>
+        </module>
+
+        <!-- missing: return count for methods. -->
+        <module name="ReturnCount">
+            <property name="id" value="return_count_method"/>
+            <property name="tokens" value="METHOD_DEF"/>
+
+            <property name="max" value="7"/>
+            <property name="maxForVoid" value="3"/>
+
+            <message key="return.count"
+                     value="ReturnCount: Return count is {0,number,integer}, but max allowed for non-void Methods is {1,number,integer}."/>
+            <message key="return.countVoid"
+                     value="ReturnCount: Return count is {0,number,integer}, but max allowed for void Methods is {1,number,integer}."/>
+        </module>
+
+
+        <module name="SimplifyBooleanExpression"/>
+
+        <module name="SimplifyBooleanReturn"/>
+
+        <!-- Checks that string literals are not used with == or !=. -->
+        <module name="StringLiteralEquality"/>
+
+        <module name="UnnecessaryParentheses"/>
+
+        <module name="UnnecessarySemicolonAfterTypeMemberDeclaration"/>
+
+        <module name="UnnecessarySemicolonInTryWithResources"/>
+
+        <module name="VariableDeclarationUsageDistance"/>
+
+    </module>
+
+    <!-- ***********************************************************
+    *** Configuration of Header Checks                           ***
+    *** https://checkstyle.sourceforge.io/config_header.html     ***
+    ************************************************************ -->
+
+    <!-- check for copyright -->
+    <module name="Header">
+        <property name="headerFile" value="${checkstyle.header.file}"/>
+        <!-- ignore line with year. -->
+        <property name="ignoreLines" value="2"/>
+        <property name="charset" value="UTF-8"/>
+        <property name="fileExtensions" value="java"/>
+
+        <property name="severity" value="error"/>
+    </module>
+
+    <!-- ***********************************************************
+    *** Configuration of Import Checks                           ***
+    *** https://checkstyle.sourceforge.io/config_imports.html    ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_imports"/>
+        <property name="severity" value="error"/>
+
+        <!-- do not use star imports. -->
+        <module name="AvoidStarImport">
+            <property name="allowClassImports" value="false"/>
+            <property name="allowStaticMemberImports" value="false"/>
+            <!-- no exclusions -->
+            <property name="excludes" value="*Constants.java"/>
+        </module>
+
+        <!-- do not use static imports, only for tests or specific syntactic sugar. -->
+        <module name="AvoidStaticImport">
+            <!-- java excludes -->
+            <property name="excludes" value="java.lang.annotation.ElementType.*"/>
+            <property name="excludes" value="java.lang.annotation.RetentionPolicy.*"/>
+
+            <property name="excludes" value="java.lang.Boolean.*"/>
+
+            <property name="excludes" value="javax.persistence.FetchType.*"/>
+
+            <property name="excludes" value="java.util.stream.Collectors.*"/>
+
+            <property name="excludes" value="java.util.Arrays.asList"/>
+            <property name="excludes" value="java.util.Collections.*"/>
+            <property name="excludes" value="java.util.Comparator.*"/>
+            <property name="excludes" value="java.util.Objects.*"/>
+            <property name="excludes" value="java.util.Spliterators.*"/>
+
+            <!-- 3rd party exclusions -->
+            <property name="excludes" value="org.slf4j.LoggerFactory.getLogger"/>
+
+            <!-- test exclusions -->
+            <property name="excludes" value="org.hamcrest.CoreMatchers.*"/>
+            <property name="excludes" value="org.hamcrest.Matchers.*"/>
+            <property name="excludes" value="org.junit.Assert.*"/>
+
+            <!-- own exclusions -->
+            <property name="excludes" value="io.github.bmhm.nameserviceagent.agent.util.TryingReflectionLoader.*"/>
+        </module>
+
+        <module name="CustomImportOrder">
+            <property name="sortImportsInGroupAlphabetically" value="true"/>
+            <property name="separateLineBetweenGroups" value="true"/>
+            <property name="customImportOrderRules"
+                      value="STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE"/>
+            <property name="specialImportsRegExp" value="^(io\.github\.bmhm\.nameserviceagent)"/>
+        </module>
+
+        <!-- phase out some import statements -->
+        <module name="IllegalImport">
+            <property name="illegalPkgs" value="org.apache.commons"/>
+            <property name="illegalPkgs" value="com.google.common"/>
+            <property name="illegalPkgs" value="sun"/>
+            <property name="illegalPkgs" value="com.sun"/>
+            <!-- JavaScript Nashorn Engine is removed in later JDKs. -->
+            <property name="illegalPkgs" value="jdk.nashorn"/>
+
+            <property name="illegalClasses" value="javax.annotation.Nullable"/>
+        </module>
+
+        <!-- no redundant imports. -->
+        <module name="RedundantImport"/>
+
+        <!-- no unused imports. -->
+        <module name="UnusedImports"/>
+    </module>
+
+
+    <!-- ***********************************************************
+    *** Configuration of Javadoc Comment Checks                  ***
+    *** https://checkstyle.sourceforge.io/config_javadoc.html    ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_javadoc"/>
+        <property name="severity" value="error"/>
+
+        <!-- Checks the indentation of the continuation lines in at-clauses. -->
+        <module name="JavadocTagContinuationIndentation"/>
+
+        <module name="JavadocMethod">
+            <property name="scope" value="public"/>
+            <property name="allowMissingParamTags" value="true"/>
+            <property name="allowMissingReturnTag" value="true"/>
+            <property name="allowedAnnotations" value="Override, Test"/>
+            <property name="tokens" value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF"/>
+        </module>
+
+        <module name="SingleLineJavadoc">
+            <property name="ignoreInlineTags" value="false"/>
+        </module>
+
+    </module>
+
+
+    <!-- ***********************************************************
+    *** Configuration of Metrics Checks                          ***
+    *** https://checkstyle.sourceforge.io/config_metrics.html    ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_metrics"/>
+        <property name="severity" value="error"/>
+
+        <!-- allow switching off some checks -->
+        <module name="SuppressionCommentFilter">
+            <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+            <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
+            <property name="checkFormat" value="$1"/>
+        </module>
+
+        <!-- See http://checkstyle.sf.net/config_metrics.html -->
+        <module name="BooleanExpressionComplexity">
+            <property name="id" value="BooleanExpressionComplexityInfo"/>
+            <property name="max" value="6"/>
+            <property name="severity" value="info"/>
+        </module>
+        <module name="BooleanExpressionComplexity">
+            <property name="id" value="BooleanExpressionComplexityWarn"/>
+            <property name="max" value="8"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="BooleanExpressionComplexity">
+            <property name="id" value="BooleanExpressionComplexityError"/>
+            <property name="max" value="12"/>
+            <property name="severity" value="error"/>
+        </module>
+
+        <!-- Determines complexity of methods, classes and files by counting the Non Commenting Source Statements (NCSS).
+
+        This check adheres to the specification for the JavaNCSS-Tool written by Chr. Clemens Lee. -->
+        <module name="JavaNCSS"/>
+    </module>
+
+
+    <!-- ***********************************************************
+    *** Configuration of Miscellaneous Checks                    ***
+    *** https://checkstyle.sourceforge.io/config_misc.html       ***
+    ************************************************************ -->
+
+    <module name="NewlineAtEndOfFile">
+        <property name="severity" value="error"/>
+    </module>
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_misc"/>
+        <property name="severity" value="error"/>
+
+        <!--
+          Checks the style of array type definitions.
+
+          Some like Java style (default):
+            public static void main(String[] args)
+          and some like C style (javaStyle=false):
+            public static void main(String args[]).
+        -->
+        <module name="ArrayTypeStyle"/>
+
+        <!-- Controls the indentation between comments and surrounding code.
+        Comments are indented at the same level as the surrounding code. -->
+        <module name="CommentsIndentation"/>
+
+        <!--
+          Checks that parameters for methods, constructors, catch and for-each blocks are final.
+          Interface, abstract, and native methods are not checked:
+            the final keyword does not make sense for interface, abstract, and native method parameters
+            as there is no code that could modify the parameter.
+        -->
+        <module name="FinalParameters"/>
+
+        <!--
+          Checks that the outer type name and the file name match.
+          For example, the class Foo must be in a file named Foo.java.
+        -->
+        <module name="OuterTypeFilename"/>
+
+        <!-- Checks for to-do comments -->
+        <module name="TodoComment">
+            <property name="format" value="(TODO)|(FIXME)|(WARNING)|(BOGUS)|(XXX)"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!--
+          Checks that long constants are defined with an upper ell.
+          That is 'L' and not 'l'.
+          This is in accordance with the Java Language Specification, Section 3.10.1.
+
+          Rationale: The lower-case ell 'l' looks a lot like 1.
+          Good: long num = 10L
+          Bad : long num = 10l;
+        -->
+        <module name="UpperEll"/>
+    </module>
+
+
+    <!-- ***********************************************************
+    *** Configuration of Modifier Checks                         ***
+    *** https://checkstyle.sourceforge.io/config_modifier.html   ***
+    ************************************************************ -->
+
+
+    <!-- ***********************************************************
+    *** Configuration of Naming Convention Checks                ***
+    *** https://checkstyle.sourceforge.io/config_naming.html     ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_naming"/>
+        <property name="severity" value="error"/>
+
+        <module name="AbbreviationAsWordInName">
+            <property name="allowedAbbreviationLength" value="2"/>
+            <property name="allowedAbbreviations" value="XML"/>
+            <property name="allowedAbbreviations" value="URL"/>
+            <property name="allowedAbbreviations" value="URI"/>
+            <property name="allowedAbbreviations" value="JSON"/>
+
+            <property name="ignoreOverriddenMethods" value="true"/>
+            <property name="ignoreFinal" value="false"/>
+            <property name="ignoreStatic" value="true"/>
+        </module>
+
+        <module name="AbstractClassName">
+            <property name="ignoreModifier" value="false"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <module name="CatchParameterName">
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern" value="Catch parameter name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="CatchParameterName">
+            <property name="format" value="^(?!e$|ex$|exc|throw).*$"/>
+            <message key="name.invalidPattern"
+                     value="Catch parameter name ''{0}'' must not be 'e' or 'ex' or start with 'exc' or 'throw'."/>
+        </module>
+
+        <module name="ClassTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern" value="Class type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="ConstantName"/>
+
+        <module name="InterfaceTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern" value="Interface type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="LambdaParameterName">
+            <property name="format" value="^[a-z]([a-zA-Z]+)+$|__"/>
+        </module>
+
+        <module name="LocalFinalVariableName"/>
+
+        <module name="LocalVariableName">
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
+            <property name="allowOneCharVarInForLoop" value="false"/>
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <message key="name.invalidPattern" value="Local variable name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="MemberName">
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern" value="Member name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="MethodName">
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$"/>
+            <message key="name.invalidPattern" value="Method name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="MethodTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern" value="Method type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+            <message key="name.invalidPattern" value="Package name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="ParameterName">
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern" value="Parameter name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+        <module name="ParameterName">
+            <property name="format" value="^(?!name$|id$|ex$|e$|exception$).*$"/>
+            <message key="name.invalidPattern"
+                     value="Parameter name ''{0}'' must not be 'name' or 'id'. Be a little bit more creative!."/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <module name="StaticVariableName"/>
+
+        <module name="TypeName">
+            <message key="name.invalidPattern" value="Type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+    </module>
+
+    <!-- ***********************************************************
+    *** Configuration of Regular Expression based Checks         ***
+    *** https://checkstyle.sourceforge.io/config_regexp.html     ***
+    ************************************************************ -->
+
+    <module name="RegexpSingleline">
+        <!-- \s matches whitespace character, $ matches end of line. -->
+        <property name="format" value="\s+$"/>
+        <property name="severity" value="error"/>
+    </module>
+
+
+    <!-- ***********************************************************
+    *** Configuration of Size based Checks                       ***
+    *** https://checkstyle.sourceforge.io/config_sizes.html      ***
+    ************************************************************ -->
+
+    <module name="FileLength">
+        <property name="severity" value="error"/>
+        <property name="max" value="1500"/>
+    </module>
+
+    <module name="LineLength">
+        <property name="severity" value="error"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+        <property name="max" value="140"/>
+    </module>
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_sizes"/>
+        <property name="severity" value="error"/>
+
+        <!-- allow switching off some checks -->
+        <module name="SuppressionCommentFilter">
+            <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+            <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
+            <property name="checkFormat" value="$1"/>
+        </module>
+
+        <!-- length of anonymous classes -->
+        <module name="AnonInnerLength">
+            <property name="max" value="20"/>
+        </module>
+
+        <!-- Restricts the number of executable statements to 30. -->
+        <module name="ExecutableStatementCount"/>
+
+        <!-- 100 methods per class, 100 methods of each type max. -->
+        <module name="MethodCount"/>
+
+
+        <!-- 120 rows in a method, regardless of comments etc. -->
+        <module name="MethodLength">
+            <property name="max" value="120"/>
+        </module>
+
+        <!-- one (top level) class per file only! -->
+        <module name="OuterTypeNumber"/>
+
+        <!-- limit number of parameters. -->
+        <module name="ParameterNumber">
+            <property name="max" value="10"/>
+            <!-- 3rd party library might be problematic. -->
+            <property name="ignoreOverriddenMethods" value="true"/>
+        </module>
+    </module>
+
+
+    <!-- ***********************************************************
+    *** Configuration of Whitespace Checks                       ***
+    *** https://checkstyle.sourceforge.io/config_whitespace.html ***
+    ************************************************************ -->
+
+    <!-- NO TAB \\t AT ALL -->
+    <module name="FileTabCharacter">
+        <property name="severity" value="error"/>
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_whitespace"/>
+        <property name="severity" value="error"/>
+
+        <!--
+          Checks for empty line separators after:
+           * header,
+           * package,
+           * all import declarations,
+           * fields,
+           * constructors,
+           * methods,
+           * nested classes,
+           * static initializers and
+           * instance initializers.
+         -->
+        <module name="EmptyLineSeparator">
+            <property name="allowNoEmptyLineBetweenFields" value="true"/>
+        </module>
+
+        <module name="MethodParamPad"/>
+
+        <module name="NoLineWrap"/>
+
+        <!-- Checks the policy on how to wrap lines on operators. -->
+        <module name="OperatorWrap">
+            <property name="option" value="NL"/>
+            <property name="tokens"
+                      value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE, LITERAL_INSTANCEOF, LOR,
+                       LT, MINUS, MOD, NOT_EQUAL, PLUS, QUESTION, SL, SR, STAR, METHOD_REF "/>
+        </module>
+
+        <!-- Checks the policy on the padding of parentheses;
+        that is whether a space is required after a left parenthesis
+        and before a right parenthesis, or such spaces are forbidden. -->
+        <module name="ParenPad"/>
+
+        <!-- Checks line wrapping with separators. -->
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapDot"/>
+            <property name="tokens" value="DOT"/>
+            <property name="option" value="nl"/>
+        </module>
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapComma"/>
+            <property name="tokens" value="COMMA"/>
+            <property name="option" value="EOL"/>
+        </module>
+        <module name="SeparatorWrap">
+            <!-- ELLIPSIS is EOL until https://github.com/google/styleguide/issues/258 -->
+            <property name="id" value="SeparatorWrapEllipsis"/>
+            <property name="tokens" value="ELLIPSIS"/>
+            <property name="option" value="EOL"/>
+        </module>
+        <module name="SeparatorWrap">
+            <!-- ARRAY_DECLARATOR is EOL until https://github.com/google/styleguide/issues/259 -->
+            <property name="id" value="SeparatorWrapArrayDeclarator"/>
+            <property name="tokens" value="ARRAY_DECLARATOR"/>
+            <property name="option" value="EOL"/>
+        </module>
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapMethodRef"/>
+            <property name="tokens" value="METHOD_REF"/>
+            <property name="option" value="nl"/>
+        </module>
+
+        <!-- Checks that a token is surrounded by whitespace.
+
+        Empty constructor, method, class, enum, interface, loop bodies (blocks), lambdas of the form (example here)
+        may optionally be exempted from the policy using the allowEmptyMethods, allowEmptyConstructors ,
+        allowEmptyTypes, allowEmptyLoops, allowEmptyLambdas and allowEmptyCatches properties. -->
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyLambdas" value="true"/>
+            <property name="allowEmptyMethods" value="true"/>
+            <property name="allowEmptyTypes" value="true"/>
+            <property name="allowEmptyLoops" value="true"/>
+            <property name="tokens"
+                      value="ASSIGN, BAND, BAND_ASSIGN, BOR, BOR_ASSIGN, BSR, BSR_ASSIGN, BXOR,
+              BXOR_ASSIGN, COLON, DIV, DIV_ASSIGN, DO_WHILE, EQUAL, GE, GT, LAMBDA, LAND,
+              LCURLY, LE, LITERAL_CATCH, LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY,
+              LITERAL_FOR, LITERAL_IF, LITERAL_RETURN, LITERAL_SWITCH, LITERAL_SYNCHRONIZED,
+               LITERAL_TRY, LITERAL_WHILE, LOR, LT, MINUS, MINUS_ASSIGN, MOD, MOD_ASSIGN,
+               NOT_EQUAL, PLUS, PLUS_ASSIGN, QUESTION, RCURLY, SL, SLIST, SL_ASSIGN, SR,
+               SR_ASSIGN, STAR, STAR_ASSIGN, LITERAL_ASSERT, TYPE_EXTENSION_AND"/>
+            <message key="ws.notFollowed"
+                     value="WhitespaceAround: ''{0}'' is not followed by whitespace.
+               Empty blocks may only be represented as '{}' when not part of a multi-block statement (4.1.3)"/>
+            <message key="ws.notPreceded"
+                     value="WhitespaceAround: ''{0}'' is not preceded with whitespace."/>
+        </module>
+
+    </module>
+
+    <!-- ***********************************************************
+    *** ab hier aufräumen                                        ***
+    ************************************************************ -->
+
+    <module name="TreeWalker">
+        <property name="id" value="walker_legacy"/>
+        <property name="severity" value="warning"/>
+
+
+        <!-- Metrics checks.                   -->
+        <!--<module name="ClassDataAbstractionCoupling"/>-->
+        <!--<module name="ClassFanOutComplexity"/>-->
+        <!--<module name="CyclomaticComplexity"/>-->
+        <!--<module name="NPathComplexity"/>-->
+
+
+        <!--Assert statement may have side effects:-->
+        <module name="DescendantToken">
+            <property name="tokens" value="LITERAL_ASSERT"/>
+            <property name="limitedTokens"
+                      value="ASSIGN,DEC,INC,POST_DEC,POST_INC,PLUS_ASSIGN,MINUS_ASSIGN,STAR_ASSIGN,DIV_ASSIGN,MOD_ASSIGN,BSR_ASSIGN,SR_ASSIGN,SL_ASSIGN,BAND_ASSIGN,BXOR_ASSIGN,BOR_ASSIGN"/>
+            <property name="maximumNumber" value="0"/>
+        </module>
+
+
+        <module name="IllegalTokenText">
+            <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
+            <property name="format"
+                      value="\\u00(08|09|0(a|A)|0(c|C)|0(d|D)|22|27|5(C|c))|\\(0(10|11|12|14|15|42|47)|134)"/>
+            <property name="message" value="Avoid using corresponding octal or Unicode escape."/>
+        </module>
+        <module name="AvoidEscapedUnicodeCharacters">
+            <property name="allowEscapesForControlCharacters" value="true"/>
+            <property name="allowByTailComment" value="true"/>
+            <property name="allowNonPrintableEscapes" value="true"/>
+        </module>
+
+
+        <module name="MultipleVariableDeclarations"/>
+        <module name="FallThrough"/>
+        <module name="UpperEll"/>
+        <module name="ModifierOrder"/>
+
+        <module name="GenericWhitespace">
+            <message key="ws.notPreceded" value="GenericWhitespace ''{0}'' is not preceded with whitespace."/>
+            <message key="ws.followed" value="GenericWhitespace ''{0}'' is followed by whitespace."/>
+            <message key="ws.preceded" value="GenericWhitespace ''{0}'' is preceded with whitespace."/>
+            <message key="ws.illegalFollow" value="GenericWhitespace ''{0}'' should followed by whitespace."/>
+        </module>
+        <module name="Indentation">
+            <property name="basicOffset" value="2"/>
+            <property name="braceAdjustment" value="0"/>
+            <property name="caseIndent" value="2"/>
+            <property name="throwsIndent" value="4"/>
+            <property name="lineWrappingIndentation" value="4"/>
+            <property name="arrayInitIndent" value="2"/>
+            <property name="severity" value="error"/>
+        </module>
+
+
+        <module name="NonEmptyAtclauseDescription"/>
+        <module name="SummaryJavadoc">
+            <property name="forbiddenSummaryFragments"
+                      value="^@return the *|^This method returns |^A [{]@code [a-zA-Z0-9]+[}]( is a )"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="JavadocParagraph"/>
+        <module name="AtclauseOrder">
+            <property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
+            <property name="tagOrder" value="@param, @return, @throws, @deprecated"/>
+        </module>
+
+
+    </module>
+
+</module>
+
