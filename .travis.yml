@@ -1,0 +1,64 @@
+language: java
+
+env:
+  global:
+    - JABBA_HOME=$HOME/.jabba
+    # default JDK which will be referenced in the after_success section
+    # if you wonder: openj9 is not hotspot, but still a openjdk type.
+    # vendor is adoptopenjdk.net, they also have a openjdk-hotspot vm.
+    # openj9 has a smaller footprint, faster startup and was originally developed by IBM as J9.
+    # It now belongs to the eclipse foundation. OpenJ9 has great debugging options.
+    - DEFAULT_JDK=adopt-openj9@1.11.0-7
+
+cache:
+  directories:
+    - "$HOME/.m2"
+    - "$HOME/.jabba"
+
+jobs:
+  include:
+    - os: linux
+      # xenial needed for openssl with pbkdf2
+      dist: xenial
+      env:
+        - TRAVIS_JDK=$DEFAULT_JDK
+    - os: linux
+      env:
+        - TRAVIS_JDK=adopt@1.11.0-6
+    - os: linux
+      env:
+        - TRAVIS_JDK=amazon-corretto@1.11.0-6.10.1
+    - os: linux
+      env:
+        - TRAVIS_JDK=zulu@1.11.0-6
+    - os: linux
+      env:
+        - TRAVIS_JDK=adopt@1.14.0-0
+    - os: linux
+      env:
+        - TRAVIS_JDK=adopt-openj9@1.14.0-0
+    - os: linux
+      env:
+        - TRAVIS_JDK=openjdk@1.14.0
+
+before_cache:
+  - rm -rf "$HOME/.m2/repository/io/github/alttpj"
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.0/install.sh | bash && . $JABBA_HOME/jabba.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.0/install.sh | bash && . $JABBA_HOME/jabba.sh; fi
+
+install:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then $JABBA_HOME/bin/jabba install $TRAVIS_JDK; jabba use $TRAVIS_JDK; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then $JABBA_HOME/bin/jabba install $TRAVIS_JDK; jabba use $TRAVIS_JDK; fi
+  - java -version
+
+script:
+  - ./mvnw --batch-mode -Pdocs,run-its clean verify
+
+after_success:
+  # do a coverage analyses for each PR or branch, but only once for each build matrix.
+  - |
+    if [ "$TRAVIS_JDK" == "$DEFAULT_JDK" ]; then
+      bash <(curl -s https://codecov.io/bash)
+    fi
