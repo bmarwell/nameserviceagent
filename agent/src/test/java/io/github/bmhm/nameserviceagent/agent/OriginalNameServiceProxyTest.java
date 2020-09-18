@@ -19,6 +19,7 @@ package io.github.bmhm.nameserviceagent.agent;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,11 +59,30 @@ class OriginalNameServiceProxyTest {
     verify(originalNameServiceMock).lookupAllHostAddr(GOOGLE_DOMAIN);
   }
 
+  @Test
+  void testProxyTakesMethodsHostByAddr() throws Exception {
+    final NameService originalNameServiceMock = this.getOriginalNameServiceMock();
+    final Method getHostByAddr = originalNameServiceMock.getClass().getMethod("getHostByAddr", byte[].class);
+    final OriginalNameServiceProxy originalNameServiceProxy = new OriginalNameServiceProxy(originalNameServiceMock);
+
+    // this should work as the NameService interface should always implement the same methods as the original interface.
+    final Object hostName = originalNameServiceProxy.invoke(originalNameServiceMock, getHostByAddr, new Object[] {GOOGLE_DNS_IP});
+
+    // then
+    assertThat(hostName, instanceOf(String.class));
+    final String returnedHostAddr = (String) hostName;
+    assertEquals(returnedHostAddr, GOOGLE_DOMAIN);
+  }
+
   private NameService getOriginalNameServiceMock() throws UnknownHostException {
-    final NameService originalNameServiceMock = mock(NameService.class);
     final Inet4Address notGooglesIp = mock(Inet4Address.class);
     when(notGooglesIp.getAddress()).then(args -> GOOGLE_DNS_IP);
+    when(notGooglesIp.getHostName()).then(args -> GOOGLE_DOMAIN);
+
+    final NameService originalNameServiceMock = mock(NameService.class);
     when(originalNameServiceMock.lookupAllHostAddr(GOOGLE_DOMAIN)).then(args -> new InetAddress[] {notGooglesIp});
+    when(originalNameServiceMock.getHostByAddr(GOOGLE_DNS_IP)).then(args -> GOOGLE_DOMAIN);
+
     return originalNameServiceMock;
   }
 

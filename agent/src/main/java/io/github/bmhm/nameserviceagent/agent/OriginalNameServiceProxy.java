@@ -39,14 +39,16 @@ public class OriginalNameServiceProxy implements InvocationHandler {
   @Override
   @ForbiddenApiCall
   public Object invoke(final Object proxy, final Method method, final Object[] args) {
+    final Class<?> originalNameServiceClass = this.actualOriginalNameService.getClass();
+
     try {
       switch (method.getName()) {
         case "lookupAllHostAddr":
-          final Method originallookupAllHostAddr = this.actualOriginalNameService.getClass().getMethod(method.getName(), String.class);
+          final Method originallookupAllHostAddr = originalNameServiceClass.getMethod(method.getName(), String.class);
           originallookupAllHostAddr.setAccessible(true);
           return originallookupAllHostAddr.invoke(this.actualOriginalNameService, (String) args[0]);
         case "getHostByAddr":
-          final Method originalgetHostByAddr = this.actualOriginalNameService.getClass().getMethod(method.getName(), byte[].class);
+          final Method originalgetHostByAddr = originalNameServiceClass.getMethod(method.getName(), byte[].class);
           originalgetHostByAddr.setAccessible(true);
           //noinspection PrimitiveArrayArgumentToVarargsMethod
           return originalgetHostByAddr.invoke(this.actualOriginalNameService, (byte[]) args[0]);
@@ -54,7 +56,7 @@ public class OriginalNameServiceProxy implements InvocationHandler {
           throw new IllegalArgumentException("method [" + method.getName() + "] does not exist or is not accessible.");
       }
     } catch (final ReflectiveOperationException noSuchMethodException) {
-      throw new IllegalArgumentException("method [" + method.getName() + "] does not exist.");
+      throw new IllegalArgumentException("method [" + method.getName() + "] does not exist.", noSuchMethodException);
     }
   }
 }
