@@ -1,6 +1,6 @@
 = Name Resolver Replacement Agent for Java
 
-image:https://www.travis-ci.com/bmhm/nameserviceagent.svg?branch=master["Build Status",link="https://www.travis-ci.com/bmhm/nameserviceagent"]
+image:https://www.travis-ci.com/bmhm/nameserviceagent.svg?branch=main["Build Status",link="https://www.travis-ci.com/bmhm/nameserviceagent"]
 image:https://img.shields.io/badge/License-Apache%202.0-blue.svg["Apache License v2.0",link="https://opensource.org/licenses/Apache-2.0""]
 image:https://codecov.io/gh/bmhm/nameserviceagent/branch/main/graph/badge.svg["Code Coverage",link="https://codecov.io/gh/bmhm/nameserviceagent"]
 
