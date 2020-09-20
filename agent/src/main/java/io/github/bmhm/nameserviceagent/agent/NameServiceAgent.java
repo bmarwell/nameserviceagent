@@ -53,7 +53,7 @@ public final class NameServiceAgent {
 
   protected static String getNameServiceClassName() {
     return System.getProperty(
-        "io.github.bmhm.nameserviceagent.implementation",
+        "nameserviceagent.implementation",
         DEFAULT_CLASS_NAME
     );
   }

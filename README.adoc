@@ -50,12 +50,12 @@ Currently these options are available:
 |===
 |key |type |default value |description
 
-|`io.github.bmhm.nameserviceagent.implementation`
+|`nameserviceagent.implementation`
 |System Property (`-D`)
 |`io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService`
 |Switch the implementation of the replaced/injected naming service.
 
-|`io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService.timeoutMs`
+|`nameserviceagent.DefaultSequentialRetryingNameService.timeoutMs`
 |System Property (`-D`)
 |`100` (ms)
 |Timeout for the DefaultSequentialRetryingNameService when a remote host is considered unavailable.
@@ -79,7 +79,7 @@ This configuration can be activated like this:
 ....
 java
     -javaagent:${localRepositoryPath}/io/github/bmhm/nameserviceagent/nameserviceagent-agent/@project.version@/nameserviceagent-agent-@project.version@.jar
-    -Dio.github.bmhm.nameserviceagent.implementation=io.github.bmhm.nameserviceagent.agent.nameservice.AlwaysLocalhostLoopbackNameService
+    -Dnameserviceagent.implementation=io.github.bmhm.nameserviceagent.agent.nameservice.AlwaysLocalhostLoopbackNameService
 ....
 
 ==== Other configurations
@@ -91,7 +91,7 @@ Feel free to create PRs for other Configs -- eg DNSoHTTPS, DNSfromDB, etc.
 If you want to write your own DNS Name Resolver, just extend `AbstractProxyNameService`
 and make sure you also have the public constructor with the NameService interface.
 
-Provide the full class name via the system property `io.github.bmhm.nameserviceagent.implementation`.
+Provide the full class name via the system property `nameserviceagent.implementation`.
 
 == Production use
 

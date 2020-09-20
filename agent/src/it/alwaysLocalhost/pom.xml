@@ -90,7 +90,7 @@
           <reuseForks>false</reuseForks>
           <argLine>
             -javaagent:${localRepositoryPath}/io/github/bmhm/nameserviceagent/nameserviceagent-agent/@project.version@/nameserviceagent-agent-@project.version@.jar
-            -Dio.github.bmhm.nameserviceagent.implementation=io.github.bmhm.nameserviceagent.agent.nameservice.AlwaysLocalhostLoopbackNameService
+            -Dnameserviceagent.implementation=io.github.bmhm.nameserviceagent.agent.nameservice.AlwaysLocalhostLoopbackNameService
             -Dsun.net.spi.nameservice.provider.1=file
             -Djdk.net.hosts.file=${project.build.testOutputDirectory}/hosts.txt
           </argLine>

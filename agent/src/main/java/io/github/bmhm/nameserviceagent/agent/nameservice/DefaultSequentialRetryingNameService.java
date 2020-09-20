@@ -40,7 +40,7 @@ public class DefaultSequentialRetryingNameService extends AbstractProxyNameServi
   public DefaultSequentialRetryingNameService(final NameService originalNameService) {
     super(originalNameService);
     this.timeoutMs =
-        Integer.getInteger("io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService.timeoutMs", 100);
+        Integer.getInteger("nameserviceagent.DefaultSequentialRetryingNameService.timeoutMs", 100);
   }
 
   @Override
