@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package io.github.bmhm.namesergice.agent.its;
+package io.github.bmhm.nameserviceagent.wire;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.xbill.DNS.Flags;
+import org.xbill.DNS.Message;
+import org.xbill.DNS.Opcode;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.Section;
 
-import org.junit.jupiter.api.Test;
+public class DnsMessage extends Message {
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+  public static DnsMessage newQuery(final Record record) {
+    final DnsMessage dnsMessage = new DnsMessage();
+    dnsMessage.getHeader().setOpcode(Opcode.QUERY);
+    dnsMessage.getHeader().setFlag(Flags.RD);
+    dnsMessage.addRecord(record, Section.QUESTION);
 
-public class IpPrinterTest {
-
-  @Test
-  void testIpPrinter() throws UnknownHostException {
-    // given
-    final InetAddress byName = InetAddress.getByName("google.com");
-
-    // assertThat
-    assertEquals("127.0.0.1", byName.getHostAddress());
+    return dnsMessage;
   }
-
 }

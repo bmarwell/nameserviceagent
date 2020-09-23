@@ -16,17 +16,15 @@
 
 package io.github.bmhm.nameserviceagent.agent.nameservice;
 
+import io.github.bmhm.nameserviceagent.agent.util.ReachableUtil;
 import io.github.bmhm.nameserviceagent.api.AbstractProxyNameService;
 import io.github.bmhm.nameserviceagent.api.NameService;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Similar to the original dns service, but takes all returned IPs into consideration and tries each three times
@@ -36,13 +34,8 @@ import java.util.logging.Logger;
  */
 public class DefaultSequentialReachableNameService extends AbstractProxyNameService {
 
-  private static final Logger LOG = Logger.getLogger(DefaultSequentialReachableNameService.class.getCanonicalName());
-  private final Integer timeoutMs;
-
   public DefaultSequentialReachableNameService(final NameService originalNameService) {
     super(originalNameService);
-    this.timeoutMs =
-        Integer.getInteger("nameserviceagent.DefaultSequentialReachableNameService.timeoutMs", 100);
   }
 
   @Override
@@ -52,7 +45,7 @@ public class DefaultSequentialReachableNameService extends AbstractProxyNameServ
     final Set<InetAddress> reachableAddresses = new LinkedHashSet<>(inetAddresses.length);
 
     for (final InetAddress inetAddress : inetAddresses) {
-      if (!this.isReachable(inetAddress)) {
+      if (!ReachableUtil.isReachable(inetAddress)) {
         continue;
       }
 
@@ -69,15 +62,6 @@ public class DefaultSequentialReachableNameService extends AbstractProxyNameServ
     return reachableAddresses.toArray(new InetAddress[0]);
   }
 
-  private boolean isReachable(final InetAddress inetAddress) {
-    try {
-      return inetAddress.isReachable(this.timeoutMs);
-    } catch (final IOException javaIoIOException) {
-      LOG.log(Level.FINE, "Network unreachable for DNS server response: [" + inetAddress.toString() + "].");
-    }
-
-    return false;
-  }
 
   @Override
   public String getHostByAddr(final byte[] addr) throws UnknownHostException {

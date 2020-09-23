@@ -26,19 +26,22 @@ import java.net.InetAddress;
 
 public final class ProxyIpv4Helper {
 
+  public static final byte[] GOOGLE_IP = {(byte) 216, 58, (byte) 212, (byte) 174};
+
   private ProxyIpv4Helper() {
     // util class
   }
 
   public static InetAddress proxyGoogleIpv4() {
-    final Inet4Address mock = mock(Inet4Address.class);
     try {
+      final InetAddress mock = mock(Inet4Address.class);
+      when(mock.getAddress()).then(args -> GOOGLE_IP);
       when(mock.isReachable(any(int.class))).then(args -> true);
+
+      return mock;
     } catch (final IOException javaIoIOException) {
       throw new IllegalStateException(javaIoIOException);
     }
-
-    return mock;
   }
 
 }

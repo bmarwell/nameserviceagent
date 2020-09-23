@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package io.github.bmhm.namesergice.agent.its;
+package io.github.bmhm.nameserviceagent.agent.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
-
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
-public class IpPrinterTest {
+class IcmpTester implements ReachableTester {
 
-  @Test
-  void testIpPrinter() throws UnknownHostException {
-    // given
-    final InetAddress byName = InetAddress.getByName("google.com");
-
-    // assertThat
-    assertEquals("127.0.0.1", byName.getHostAddress());
+  @Override
+  public boolean isReachable(final InetAddress addressToTest, final int timeoutMs) throws IOException {
+    return addressToTest.isReachable(timeoutMs);
   }
-
 }

@@ -55,7 +55,7 @@ Currently these options are available:
 |`DefaultSequentialReachableNameService`
 |Switch the implementation of the replaced/injected naming service.
 
-|`nameserviceagent.DefaultSequentialReachableNameService.timeoutMs`
+|`nameserviceagent.reachable.timeoutMs`
 |System Property (`-D`)
 |`100` (ms)
 |Timeout for the DefaultSequentialReachableNameService when a remote host is considered unavailable.

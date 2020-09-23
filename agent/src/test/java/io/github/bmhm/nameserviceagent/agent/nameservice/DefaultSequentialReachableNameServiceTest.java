@@ -16,6 +16,7 @@
 
 package io.github.bmhm.nameserviceagent.agent.nameservice;
 
+import static io.github.bmhm.nameserviceagent.agent.nameservice.ProxyIpv4Helper.GOOGLE_IP;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -32,7 +33,6 @@ import java.net.UnknownHostException;
 
 class DefaultSequentialReachableNameServiceTest {
 
-  private static final byte[] GOOGLE_DNS_IP = {8, 8, 8, 8};
   public static final String GOOGLE_COM_DOMAIN = "google.com";
 
   @Test
@@ -42,14 +42,14 @@ class DefaultSequentialReachableNameServiceTest {
     final DefaultSequentialReachableNameService defaultSequentialReachableNameService = new DefaultSequentialReachableNameService(original);
 
     // when
-    defaultSequentialReachableNameService.getHostByAddr(GOOGLE_DNS_IP);
+    defaultSequentialReachableNameService.getHostByAddr(GOOGLE_IP);
 
     // then
-    verify(original).getHostByAddr(GOOGLE_DNS_IP);
+    verify(original).getHostByAddr(GOOGLE_IP);
   }
 
   @Test
-  void testTryThreeTimes() throws IOException {
+  void testTryReachable() throws IOException {
     // given
     final NameService original = mock(NameService.class);
     final DefaultSequentialReachableNameService defaultSequentialReachableNameService = new DefaultSequentialReachableNameService(original);
