@@ -17,25 +17,20 @@
 package io.github.bmhm.nameserviceagent.agent.nameservice;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.github.bmhm.nameserviceagent.api.NameService;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-class DefaultSequentialRetryingNameServiceTest {
+class DefaultSequentialReachableNameServiceTest {
 
   private static final byte[] GOOGLE_DNS_IP = {8, 8, 8, 8};
   public static final String GOOGLE_COM_DOMAIN = "google.com";
@@ -44,10 +39,10 @@ class DefaultSequentialRetryingNameServiceTest {
   void testPassThroughGetHostByAddr() throws UnknownHostException {
     // given
     final NameService original = mock(NameService.class);
-    final DefaultSequentialRetryingNameService defaultSequentialRetryingNameService = new DefaultSequentialRetryingNameService(original);
+    final DefaultSequentialReachableNameService defaultSequentialReachableNameService = new DefaultSequentialReachableNameService(original);
 
     // when
-    defaultSequentialRetryingNameService.getHostByAddr(GOOGLE_DNS_IP);
+    defaultSequentialReachableNameService.getHostByAddr(GOOGLE_DNS_IP);
 
     // then
     verify(original).getHostByAddr(GOOGLE_DNS_IP);
@@ -57,38 +52,18 @@ class DefaultSequentialRetryingNameServiceTest {
   void testTryThreeTimes() throws IOException {
     // given
     final NameService original = mock(NameService.class);
-    final DefaultSequentialRetryingNameService defaultSequentialRetryingNameService = new DefaultSequentialRetryingNameService(original);
-    final InetAddress fakeInetAddress = this.proxyGoogleIpv4();
+    final DefaultSequentialReachableNameService defaultSequentialReachableNameService = new DefaultSequentialReachableNameService(original);
+    final InetAddress fakeInetAddress = ProxyIpv4Helper.proxyGoogleIpv4();
 
     // when
     when(original.lookupAllHostAddr(GOOGLE_COM_DOMAIN)).then(args -> new InetAddress[] {fakeInetAddress});
-    final InetAddress[] inetAddresses = defaultSequentialRetryingNameService.lookupAllHostAddr(GOOGLE_COM_DOMAIN);
+    final InetAddress[] inetAddresses = defaultSequentialReachableNameService.lookupAllHostAddr(GOOGLE_COM_DOMAIN);
 
     // then
     assertTrue(inetAddresses.length == 1);
     verify(original).lookupAllHostAddr(GOOGLE_COM_DOMAIN);
-    verify(fakeInetAddress, times(3)).isReachable(anyInt());
+    verify(fakeInetAddress).isReachable(anyInt());
 
   }
 
-  private InetAddress proxyGoogleIpv4() {
-    final Inet4Address mock = mock(Inet4Address.class);
-    try {
-      when(mock.isReachable(any(int.class))).thenAnswer(new AnswerOnThree());
-    } catch (final IOException javaIoIOException) {
-      throw new IllegalStateException(javaIoIOException);
-    }
-
-    return mock;
-  }
-
-  private class AnswerOnThree implements Answer<Boolean> {
-    int tries = 0;
-
-    @Override
-    public Boolean answer(final InvocationOnMock invocation) {
-      this.tries++;
-      return 3 == this.tries;
-    }
-  }
 }

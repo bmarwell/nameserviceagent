@@ -52,22 +52,20 @@ Currently these options are available:
 
 |`nameserviceagent.implementation`
 |System Property (`-D`)
-|`io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService`
+|`DefaultSequentialReachableNameService`
 |Switch the implementation of the replaced/injected naming service.
 
-|`nameserviceagent.DefaultSequentialRetryingNameService.timeoutMs`
+|`nameserviceagent.DefaultSequentialReachableNameService.timeoutMs`
 |System Property (`-D`)
 |`100` (ms)
-|Timeout for the DefaultSequentialRetryingNameService when a remote host is considered unavailable.
+|Timeout for the DefaultSequentialReachableNameService when a remote host is considered unavailable.
 |===
 
 ==== Default configuration
 
 :fn-hostfile: footnote:[By default, java will use your system’s DNS resolver. If you specify `-Djdk.net.hosts.file=hosts.txt`, DNS resolution will be replaced by this host file mechanism.]
 The default configuration will use the default nameService (e.g. system dns or host file‎{fn-hostfile}).
-However, while the default implementation will just use the 1st IP returned, this implementation will in fact check all the IP addresses up to three times.
-
-A better strategy would be to test all of them sequentially three times.
+However, while the default implementation will just use the 1st IP returned, this implementation will in fact check all the IP addresses.
 
 === Always resolve loopback
 

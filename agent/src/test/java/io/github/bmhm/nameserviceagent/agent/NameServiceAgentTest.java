@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService;
+import io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialReachableNameService;
 import io.github.bmhm.nameserviceagent.api.AbstractProxyNameService;
 import io.github.bmhm.nameserviceagent.api.NameService;
 
@@ -70,14 +70,14 @@ class NameServiceAgentTest {
   void testNameServiceClassName() {
     final String nameServiceClassName = NameServiceAgent.getNameServiceClassName();
 
-    assertEquals(DefaultSequentialRetryingNameService.class.getName(), nameServiceClassName);
+    assertEquals(DefaultSequentialReachableNameService.class.getName(), nameServiceClassName);
   }
 
   @Test
   void testLoadDefaultServiceClass() throws ClassNotFoundException {
     final Class<? extends AbstractProxyNameService> serviceClass = NameServiceAgent.loadCustomNameServiceClass();
 
-    assertThat(serviceClass.getName(), is(DefaultSequentialRetryingNameService.class.getName()));
+    assertThat(serviceClass.getName(), is(DefaultSequentialReachableNameService.class.getName()));
   }
 
   static class NoopNameService extends AbstractProxyNameService {

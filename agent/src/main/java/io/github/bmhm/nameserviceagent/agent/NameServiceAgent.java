@@ -16,7 +16,7 @@
 
 package io.github.bmhm.nameserviceagent.agent;
 
-import io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialRetryingNameService;
+import io.github.bmhm.nameserviceagent.agent.nameservice.DefaultSequentialReachableNameService;
 import io.github.bmhm.nameserviceagent.api.AbstractProxyNameService;
 
 import java.lang.instrument.Instrumentation;
@@ -26,7 +26,7 @@ import java.lang.instrument.Instrumentation;
  */
 public final class NameServiceAgent {
 
-  private static final String DEFAULT_CLASS_NAME = DefaultSequentialRetryingNameService.class.getCanonicalName();
+  private static final String DEFAULT_CLASS_NAME = DefaultSequentialReachableNameService.class.getCanonicalName();
 
   private NameServiceAgent() {
     // util

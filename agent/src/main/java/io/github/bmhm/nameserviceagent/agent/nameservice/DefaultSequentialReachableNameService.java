@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,52 +34,44 @@ import java.util.logging.Logger;
  *
  * <p>The original service will only use the first response from the name service without any checking.</p>
  */
-public class DefaultSequentialRetryingNameService extends AbstractProxyNameService {
+public class DefaultSequentialReachableNameService extends AbstractProxyNameService {
 
-  private static final Logger LOG = Logger.getLogger(DefaultSequentialRetryingNameService.class.getCanonicalName());
+  private static final Logger LOG = Logger.getLogger(DefaultSequentialReachableNameService.class.getCanonicalName());
   private final Integer timeoutMs;
 
-  public DefaultSequentialRetryingNameService(final NameService originalNameService) {
+  public DefaultSequentialReachableNameService(final NameService originalNameService) {
     super(originalNameService);
     this.timeoutMs =
-        Integer.getInteger("nameserviceagent.DefaultSequentialRetryingNameService.timeoutMs", 100);
+        Integer.getInteger("nameserviceagent.DefaultSequentialReachableNameService.timeoutMs", 100);
   }
 
   @Override
   public InetAddress[] lookupAllHostAddr(final String host) throws UnknownHostException {
     final InetAddress[] inetAddresses = this.getOriginalNameService().lookupAllHostAddr(host);
+    // using a linked hashset, because we want to retain the original order.
+    final Set<InetAddress> reachableAddresses = new LinkedHashSet<>(inetAddresses.length);
 
-    final InetAddress[] aliveAddresses = Arrays.stream(inetAddresses)
-        .filter(this::isReachableMultiple)
-        .toArray(InetAddress[]::new);
-
-    if (aliveAddresses.length == 0) {
-      throw new UnknownHostException("Unable to resolve host " + host);
-    }
-
-    return aliveAddresses;
-  }
-
-  private boolean isReachableMultiple(final InetAddress inetAddress) {
-    boolean reachable = false;
-
-    for (int tries = 3; tries >= 1; tries--) {
-      if (reachable = this.isReachable(inetAddress)) {
-        break;
+    for (final InetAddress inetAddress : inetAddresses) {
+      if (!this.isReachable(inetAddress)) {
+        continue;
       }
+
+      reachableAddresses.add(inetAddress);
     }
 
-    if (!reachable) {
-      LOG.log(Level.FINE, "DNS returned unreachable server: [" + inetAddress.toString() + "].");
+    if (reachableAddresses.isEmpty()) {
+      throw new UnknownHostException(
+          "Unable to resolve host [" + host + "]: "
+              + "none of the resolved IP addresses is reachable: " + Arrays.toString(inetAddresses)
+      );
     }
 
-    return reachable;
-
+    return reachableAddresses.toArray(new InetAddress[0]);
   }
 
   private boolean isReachable(final InetAddress inetAddress) {
     try {
-      return inetAddress.isReachable(100);
+      return inetAddress.isReachable(this.timeoutMs);
     } catch (final IOException javaIoIOException) {
       LOG.log(Level.FINE, "Network unreachable for DNS server response: [" + inetAddress.toString() + "].");
     }
